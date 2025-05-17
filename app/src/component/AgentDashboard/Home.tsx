@@ -2,6 +2,7 @@
 import Card from "./../dashboard/home/card"
 import { SquareSigma, DiamondPercent, ShieldCheck, CircleX  } from "lucide-react"
 import React, { useState } from "react"
+import AgentDashboard from "./Complaints"
 
 export default function Home() {
   const [pass] = useState(true)
@@ -18,8 +19,7 @@ export default function Home() {
         className="flex-1"
       />
     </div>
-
-      <Histories />
+    <AgentDashboard />
     </div>
   )
 }

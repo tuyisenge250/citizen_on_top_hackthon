@@ -7,13 +7,13 @@ import { Layout, Menu, theme } from 'antd';
 import logo from "./../../image/happy_citizen.png"
 import Image from 'next/image';
 import Home from './Home';
-import Histories from './home/ComplaintHistories';
+import AgentDashboard from './Complaints';
 const { Header, Sider, Content } = Layout;
 import ProfileComponent from './../dashboard/Profile';
 import NotificationsPage from './../dashboard/Notification';
 import FeedbackDashboard from './feedBack';
 
-const DashboardLayout = () => {
+const DashboardLayoutAgency = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedKey, setSelectedKey] = useState('1');
   const [isSiderVisible, setIsSiderVisible] = useState(false);
@@ -193,7 +193,7 @@ const DashboardLayout = () => {
           }}
         >
           {selectedKey === '1' ? <Home /> :
-           selectedKey === '2' ? <Histories /> :
+           selectedKey === '2' ? <AgentDashboard /> :
            selectedKey === '3' ? <FeedbackDashboard /> :
            selectedKey === '4' ? <NotificationsPage /> :
            selectedKey === '6' ? <ProfileComponent /> :
@@ -204,4 +204,4 @@ const DashboardLayout = () => {
   );
 };
 
-export default DashboardLayout;
+export default DashboardLayoutAgency;
