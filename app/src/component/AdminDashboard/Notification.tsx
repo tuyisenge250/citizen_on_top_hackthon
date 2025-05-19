@@ -1,19 +1,79 @@
 import { useState, useEffect } from 'react';
-import { Bell, ChevronDown, ChevronUp, Clock, CheckCircle, AlertTriangle, Info, Settings, Filter, Search, RefreshCw } from 'lucide-react';
+import {
+  Bell,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Settings,
+  Filter,
+  Search,
+  RefreshCw,
+} from 'lucide-react';
+
+type NotificationType =
+  | 'status_update'
+  | 'response'
+  | 'resolved'
+  | 'information'
+  | 'escalation';
+
+type Priority = 'low' | 'normal' | 'high' | 'urgent';
+
+interface Action {
+  label: string;
+  action: string;
+  id: string;
+}
+
+interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  complaintId?: string;
+  date: string;
+  read: boolean;
+  priority: Priority;
+  agency?: string;
+  actions: Action[];
+}
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, unread, updates, urgent
-  const [expandedIds, setExpandedIds] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [filter, setFilter] = useState<'all' | 'unread' | 'updates' | 'urgent'>('all');
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Fetch notifications (simulated)
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     const mockNotifications: Notification[] = [
+  //       {
+  //         id: 'not-1',
+  //         type: 'status_update',
+  //         title: 'Complaint Status Updated',
+  //         message:
+  //           'Your complaint regarding "Road pothole at Junction Mall" has been assigned to Roads & Transport Department. An inspector will visit the location within 48 hours.',
+  //         complaintId: 'COMP-2023-0578',
+  //         date: '2025-05-15T09:24:00',
+  //         read: false,
+  //         priority: 'normal',
+  //         agency: 'Roads & Transport',
+  //         actions: [{ label: 'View Complaint', action: 'view_complaint', id: 'COMP-2023-0578' }],
+  //       },State([]);
+  // const [searchQuery, setSearchQuery] = useState('');
+  // const [refreshing, setRefreshing] = useState(false);
   
   // Fetch notifications (simulated)
   useEffect(() => {
     // In a real implementation, this would be an API call
     setTimeout(() => {
-      const mockNotifications = [
+      const mockNotifications: Notification[] = [
         {
           id: 'not-1',
           type: 'status_update',
@@ -99,14 +159,14 @@ export default function NotificationsPage() {
   };
   
   // Toggle notification expansion
-  const toggleExpand = (id) => {
+  const toggleExpand = (id: any) => {
     setExpandedIds(prev => 
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
   
   // Mark notification as read
-  const markAsRead = (id) => {
+  const markAsRead = (id: any) => {
     setNotifications(prev => 
       prev.map(notification => 
         notification.id === id ? { ...notification, read: true } : notification
@@ -115,7 +175,7 @@ export default function NotificationsPage() {
   };
   
   // Handle notification action
-  const handleAction = (action, id) => {
+  const handleAction = (action: any, id: any) => {
     // In real implementation, this would navigate or perform the action
     console.log(`Performing action ${action} for ${id}`);
     // Example implementation would be:
@@ -125,7 +185,7 @@ export default function NotificationsPage() {
   };
   
   // Get notification icon based on type
-  const getNotificationIcon = (type, priority) => {
+  const getNotificationIcon = (type: any, priority: any) => {
     switch (type) {
       case 'status_update':
         return <Info size={20} className="text-blue-500" />;
@@ -143,24 +203,24 @@ export default function NotificationsPage() {
   };
   
   // Format date for display
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      // Today - show time
-      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
-    } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    }
-  };
+ const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
+  if (diffDays === 0) {
+    // Today - show time
+    return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+};
+
   // Filter notifications
   const filteredNotifications = notifications.filter(notification => {
     // Apply search filter
@@ -182,13 +242,28 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read).length;
   
   // MessageCircle component is not in lucide-react import, so creating a custom one
-  const MessageCircle = ({ size, className }) => (
-    <div className={className}>
-      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-      </svg>
-    </div>
-  );
+interface MessageCircleProps {
+  size: number | string;       // size can be a number (pixels) or string (e.g. '24px', '2em')
+  className?: string;          // optional className
+}
+
+const MessageCircle: React.FC<MessageCircleProps> = ({ size, className }) => (
+  <div className={className}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  </div>
+);
   
   return (
     <div className="max-w-full mx-auto p-4 bg-white rounded-lg shadow-md">

@@ -3,7 +3,7 @@ import  prisma  from "@/lib/prisma";
 import bcrypt from 'bcrypt'
 import { generateToken } from "@/util";
 
-export async function POST(request: NextRequest, res: NextResponse) {
+export async function POST(request: NextRequest) {
     const body = await request.json()
     const { password, email } = body
     try{

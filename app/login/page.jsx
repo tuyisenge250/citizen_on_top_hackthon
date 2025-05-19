@@ -11,7 +11,7 @@ export default function DrivingLoginPortal() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formState, setFormState] = useState({
-    phoneNumber: "",
+    email: "",
     password: "",
     rememberMe: false
   });
@@ -22,10 +22,10 @@ export default function DrivingLoginPortal() {
   // Form validation function
   const validateForm = () => {
     const errors = {};
-    if (!formState.phoneNumber) {
-      errors.phoneNumber = "Phone number is required";
-    } else if (!/^\d{10}$/.test(formState.phoneNumber.replace(/\D/g, ''))) {
-      errors.phoneNumber = "Please enter a valid phone number";
+    if (!formState.email) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formState.email)) {
+      errors.email = "Please enter a valid email address";
     }
     
     if (!formState.password) {
@@ -37,8 +37,7 @@ export default function DrivingLoginPortal() {
     return errors;
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+    async function handleSubmit(e) {
     e.preventDefault();
     
     const errors = validateForm();
@@ -46,13 +45,38 @@ export default function DrivingLoginPortal() {
     
     if (Object.keys(errors).length === 0) {
       setIsLoading(true);
+
+    try {
+           const formJson = JSON.stringify(formState)
+            const res = await fetch("http://localhost:3000/api/auth/login ", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: formJson,
+                credentials: "include"
+            });
+            
+            const successInfo= await res.json();
+            
+            if (!res.ok) {
+                setError(successInfo.error || "Check phone number nor password");
+                return;
+            }
+            // localStorage.setItem('id',infoGetted.user.id);
+            // if(fromOtherPage){
+            //     router.replace(fromOtherPage)
+            //     localStorage.removeItem("pathToBack")
+            //     return
+            // }
+            localStorage.setItem("citizenId", successInfo.user.id)
+            router.push("/dashboard");
+        } catch (error) {
+            setError(error.message);
+        } finally{
+            setIsLoading(false);
+        }
       
-      // Simulate API call
-      setTimeout(() => {
-        setIsLoading(false);
-        router.push("/dashboard"); 
-        console.log("Login successful", formState);
-      }, 1500);
     }
   };
 
@@ -190,25 +214,25 @@ export default function DrivingLoginPortal() {
             </div>
             
             <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label htmlFor="phoneNumber" className="block text-gray-700 font-medium mb-2">Phone Number</label>
-                <div className={`relative border ${formErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
+              <div className="mb-5">
+                <label htmlFor="email" className="block text-gray-700 font-medium mb-2">Email Address</label>
+                <div className={`relative border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formState.phoneNumber}
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formState.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 text-black pr-3 py-3 border-0 rounded-lg focus:outline-none"
-                    placeholder="07XXXXXXXX"
+                    className="block w-full text-black pl-10 pr-3 py-3 border-0 rounded-lg focus:outline-none"
+                    placeholder="your.email@example.com"
                   />
                 </div>
-                {formErrors.phoneNumber && <p className="mt-1 text-sm text-red-500">{formErrors.phoneNumber}</p>}
+                {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
               </div>
               
               <div className="mb-6">

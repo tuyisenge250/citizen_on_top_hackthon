@@ -1,9 +1,31 @@
-import React, { useRef, useState } from "react";
+"use client"
+import React, { useRef, useState, useEffect } from "react";
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import NewComplaint from './NewComplaint'
 
+interface Response {
+  id: string;
+  message: string;
+  createdAt: string;
+}
+
 interface ComplaintItem {
-  id: number;
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  status: string;
+  location: string | null;
+  attachmentUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+  category: { name: string };
+  agency: { name: string };
+  responses: Response[];
+}
+
+interface DisplayComplaintItem {
+  id: string;
   dateTime: string;
   category: string;
   status: string;
@@ -17,150 +39,138 @@ interface AccordionProps {
   i: number;
   expanded: number | null;
   setExpanded: React.Dispatch<React.SetStateAction<number | null>>;
-  item: ComplaintItem;
+  item: DisplayComplaintItem;
 }
-
-// Sample complaint data
-const complaintItems: ComplaintItem[] = [
-  {
-    id: 1,
-    dateTime: "2025-05-10 09:30 AM",
-    category: "Roads & Infrastructure",
-    status: "Resolved",
-    title: "Pothole on Main Street",
-    description: "Large pothole near the intersection of Main Street and Oak Avenue causing damage to vehicles and creating hazardous driving conditions.",
-    agency: "Public Works Department",
-    response: "Thank you for your report. Our maintenance team filled the pothole on May 14th. Please let us know if you notice any issues with the repair."
-  },
-  {
-    id: 2,
-    dateTime: "2025-05-08 14:15 PM",
-    category: "Waste Management",
-    status: "In Progress",
-    title: "Missed garbage collection",
-    description: "Our street (Cedar Lane, blocks 400-500) has been missed for garbage collection two weeks in a row. Several neighbors have reported this issue as well.",
-    agency: "Sanitation Department",
-    response: "We apologize for the inconvenience. We've identified a scheduling error that affected your area. A special collection has been scheduled for tomorrow, May 17th. We've also corrected our routes to prevent this from happening again."
-  },
-  {
-    id: 3,
-    dateTime: "2025-05-05 11:20 AM",
-    category: "Public Safety",
-    status: "Under Review",
-    title: "Broken streetlight",
-    description: "The streetlight at the corner of Pine Street and 7th Avenue has been flickering for weeks and is now completely out, creating safety concerns for pedestrians at night.",
-    agency: "Department of Transportation",
-  },
-  {
-    id: 4,
-    dateTime: "2025-04-28 16:45 PM",
-    category: "Public Utilities",
-    status: "Resolved",
-    title: "Water outage without prior notice",
-    description: "There was a water outage in the Riverside neighborhood on April 27th with no prior notification to residents. Many families were unprepared and this caused significant inconvenience.",
-    agency: "Water Department",
-    response: "We sincerely apologize for the unannounced outage. This was an emergency repair due to a major pipe burst. We've updated our notification system to ensure that even emergency repairs will trigger automatic alerts via text message to affected areas. You can sign up for these alerts on our website."
-  },
-  {
-    id: 5,
-    dateTime: "2025-04-20 10:05 AM",
-    category: "Parks & Recreation",
-    status: "Assigned",
-    title: "Playground equipment damage",
-    description: "The slide at Oakwood Park children's playground is damaged with a large crack that could be dangerous for children. This needs immediate attention.",
-    agency: "Parks Department",
-  },
-];
-
-// Available categories for new submissions
-const categories = [
-  "Roads & Infrastructure",
-  "Waste Management",
-  "Public Safety",
-  "Public Utilities",
-  "Parks & Recreation",
-  "Public Transportation",
-  "City Administration",
-  "Noise Complaints",
-  "Other"
-];
 
 const Histories: React.FC = () => {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const [complaints, setComplaints] = useState<ComplaintItem[]>(complaintItems);
-  const [showForm, setShowForm] = useState(false);
+  const [complaints, setComplaints] = useState<ComplaintItem[]>([]);
   const [activeTab, setActiveTab] = useState<"complaints" | "submission">("complaints");
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+
   
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState(categories[0]);
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const newComplaint: ComplaintItem = {
-      id: complaints.length + 1,
-      dateTime: new Date().toLocaleString(),
-      category: category,
-      status: "Submitted",
-      title: title,
-      description: description,
-      agency: "Pending Assignment"
+//   const userId = localStorage.getItem("citizenId");
+//   if (userId === null) {
+//   return <div>Loading user data...</div>;
+// }
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/complaint/complaint_response", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch complaints');
+        }
+        
+        const data = await res.json();
+        setComplaints(data.submissions || []);
+        setError("")
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    setComplaints([newComplaint, ...complaints]);
-    setTitle("");
-    setDescription("");
-    setCategory(categories[0]);
-    setActiveTab("complaints");
+    setUserId(localStorage.getItem("citizenId"));
+    console.log(userId)
+    fetchComplaints();
+  }, [userId]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getLatestResponse = (responses: Response[]) => {
+    if (responses.length === 0) return null;
+    return responses.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0].message;
+  };
+
+  const transformComplaintData = (complaint: ComplaintItem): DisplayComplaintItem => {
+    return {
+      id: complaint.id,
+      dateTime: formatDate(complaint.createdAt),
+      category: complaint.category.name,
+      status: complaint.status,
+      title: complaint.title,
+      description: complaint.description,
+      agency: complaint.agency.name,
+      response: getLatestResponse(complaint.responses)
+    };
   };
 
   return (
     <div className="mx-auto max-w-full py-6 px-4">
       <div className="flex flex-col sm:flex-row justify-between">
-      <header className="mb-8">
-        <h1 className="mb-2 bg-gradient-to-b from-blue-700 to-blue-900 bg-clip-text text-4xl font-bold text-transparent">
-          Citizen on Top
-        </h1>
-        <p className="text-gray-600">
-          Submit, track, and receive updates on your public service requests
-        </p>
-      </header>
+        <header className="mb-8">
+          <h1 className="mb-2 bg-gradient-to-b from-blue-700 to-blue-900 bg-clip-text text-4xl font-bold text-transparent">
+            Citizen on Top
+          </h1>
+          <p className="text-gray-600">
+            Submit, track, and receive updates on your public service requests
+          </p>
+        </header>
 
-      <div className="mb-6 flex justify-center space-x-4">
-        <button
-          className={`rounded-lg px-6 py-2 text-sm font-medium transition ${
-            activeTab === "complaints"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-white text-blue-600 hover:bg-blue-50"
-          }`}
-          onClick={() => setActiveTab("complaints")}
-        >
-          My Complaints
-        </button>
-        <button
-          className={`rounded-lg px-6 py-2 text-sm font-medium transition ${
-            activeTab === "submission"
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-white text-blue-600 hover:bg-blue-50"
-          }`}
-          onClick={() => setActiveTab("submission")}
-        >
-          Submit New Complaint
-        </button>
+        <div className="mb-6 flex justify-center space-x-4">
+          <button
+            className={`rounded-lg px-6 py-2 text-sm font-medium transition ${
+              activeTab === "complaints"
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-white text-blue-600 hover:bg-blue-50"
+            }`}
+            onClick={() => setActiveTab("complaints")}
+          >
+            My Complaints
+          </button>
+          <button
+            className={`rounded-lg px-6 py-2 text-sm font-medium transition ${
+              activeTab === "submission"
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-white text-blue-600 hover:bg-blue-50"
+            }`}
+            onClick={() => setActiveTab("submission")}
+          >
+            Submit New Complaint
+          </button>
+        </div>
       </div>
-      </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
 
       {activeTab === "complaints" ? (
         <div className="space-y-4">
-          {complaints.length > 0 ? (
-            complaints.map((item, i) => (
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : complaints.length > 0 ? (
+            complaints.map((complaint, i) => (
               <Complaint
-                key={i}
+                key={complaint.id}
                 i={i}
                 expanded={expanded}
                 setExpanded={setExpanded}
-                item={item}
+                item={transformComplaintData(complaint)}
               />
             ))
           ) : (
@@ -260,7 +270,7 @@ const Complaint: React.FC<AccordionProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex items-center">
             <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700`}>
-              <span className="text-sm font-medium">#{item.id}</span>
+              <span className="text-sm font-medium">#{item.id.substring(0, 4)}</span>
             </div>
             <div className="ml-3">
               <h3 className="font-semibold text-gray-800">{item.title}</h3>
@@ -316,7 +326,7 @@ const Complaint: React.FC<AccordionProps> = ({
               <p className="mt-1 text-gray-700">{item.agency}</p>
             </div>
             
-            {item.response && (
+            {item.response ? (
               <div className="rounded-md bg-blue-50 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
@@ -332,9 +342,7 @@ const Complaint: React.FC<AccordionProps> = ({
                   </div>
                 </div>
               </div>
-            )}
-            
-            {!item.response && (
+            ) : (
               <div className="rounded-md bg-yellow-50 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">

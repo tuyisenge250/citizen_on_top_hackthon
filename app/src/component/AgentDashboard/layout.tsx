@@ -9,7 +9,7 @@ import Image from 'next/image';
 import Home from './Home';
 import AgentDashboard from './Complaints';
 const { Header, Sider, Content } = Layout;
-import ProfileComponent from './../dashboard/Profile';
+import ProfileComponent from '../dashboard/Profile';
 import NotificationsPage from './../dashboard/Notification';
 import FeedbackDashboard from './feedBack';
 

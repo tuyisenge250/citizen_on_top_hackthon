@@ -7,11 +7,10 @@ import { Layout, Menu, theme } from 'antd';
 import logo from "./../../image/happy_citizen.png"
 import Image from 'next/image';
 import Home from './Home';
-import Histories from './home/ComplaintHistories';
 const { Header, Sider, Content } = Layout;
-import NewFeedback from './home/NewFeedback';
 import ProfileComponent from './Profile';
 import NotificationsPage from './Notification';
+import FeedbackHistories from './home/feedBackHistory';
 
 const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -194,7 +193,7 @@ const DashboardLayout = () => {
         >
           {selectedKey === '1' ? <Home /> :
            selectedKey === '2' ? <Histories /> :
-           selectedKey === '3' ? <NewFeedback /> :
+           selectedKey === '3' ? <FeedbackHistories /> :
            selectedKey === '4' ? <NotificationsPage /> :
            selectedKey === '6' ? <ProfileComponent /> :
            <h1>Content coming soon</h1>}

@@ -6,7 +6,6 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const { firstName, lastName, email, password, phone } = body
 
-        // Check if user already exists based on email
         const userExist = await prisma.user.findUnique({
             where: { email }
         })
@@ -20,7 +19,6 @@ export async function POST(request: NextRequest) {
             })
         }
 
-        // Validate phone number (10 digits and starts with 078, 079, or 073)
         if (phone.length !== 10 || !["078", "079", "073"].includes(phone.slice(0, 3))) {
             return new Response(JSON.stringify({ error: "Invalid phone number. It must be 10 digits and start with 078, 079, or 073." }), {
                 status: 400,
@@ -30,7 +28,6 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Validate password
         if (password.length < 5) {
             return new Response(JSON.stringify({ error: "Password must be at least 5 characters long." }), {
                 status: 400,
@@ -40,7 +37,6 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Hash the password
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password, salt)
 

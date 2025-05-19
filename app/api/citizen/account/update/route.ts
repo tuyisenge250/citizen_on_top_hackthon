@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 
-type UpdateBody = Partial<{
+type UpdateBody = {
+  id: string;
+  email: string;
+} & Partial<{
   firstName: string;
   lastName: string;
   phone: string;
@@ -10,19 +13,21 @@ type UpdateBody = Partial<{
   city: string;
   district: string;
   password: string;
-}> & { email: string };      
+}>;
 
-export async function PUT(request: NextRequest) {
+export async function PUT(req: NextRequest) {
   try {
-    const body: UpdateBody = await request.json();
-    const {
-      email,           
-      password,
-      phone,
-      ...rest           
-    } = body;
+    const body = (await req.json()) as UpdateBody;
+    const { id, email, password, phone, ...rest } = body;
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    if (!id || !email) {
+      return NextResponse.json(
+        { error: "Both id and email are required." },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
         { error: "User not found." },
@@ -33,15 +38,9 @@ export async function PUT(request: NextRequest) {
     const updateData: Record<string, unknown> = { ...rest };
 
     if (phone !== undefined) {
-      if (
-        phone.length !== 10 ||
-        !["078", "079", "073"].includes(phone.slice(0, 3))
-      ) {
+      if (phone.length !== 10 || !["078", "079", "073"].includes(phone.slice(0, 3))) {
         return NextResponse.json(
-          {
-            error:
-              "Phone must be 10 digits and start with 078, 079, or 073.",
-          },
+          { error: "Phone must be 10 digits and start with 078, 079, or 073." },
           { status: 400 }
         );
       }
@@ -60,11 +59,11 @@ export async function PUT(request: NextRequest) {
     }
 
     const updatedUser = await prisma.user.update({
-      where: { email },
+      where: { id },
       data: updateData,
     });
 
-    const { password: _pw, ...safeUser } = updatedUser;
+    const { password: _, ...safeUser } = updatedUser;
 
     return NextResponse.json(
       { message: "User updated.", user: safeUser },

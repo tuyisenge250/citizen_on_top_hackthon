@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import  prisma  from "@/lib/prisma";
 
-export async function POST(request: NextRequest, res: NextResponse) {
+export async function POST(request: NextRequest) {
     const body = await request.json()
-    const { email } = body
+    const { id } = body
+    console.log(id)
     try{
         const userExit = await prisma.user.findUnique({
-            where: { email }
+            where: { id }
         })
         if (!userExit){
             return new Response(JSON.stringify({ error : "you number Not founded try again or creat account" }),{

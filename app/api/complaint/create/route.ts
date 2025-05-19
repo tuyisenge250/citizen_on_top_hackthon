@@ -7,10 +7,11 @@ interface CreateBody {
   agencyId:    string;
   title:       string;
   description: string;
-  type?:       "COMPLAINT" | "FEEDBACK" | "SUGGESTION";
+  type?:       "COMPLAINT" | "FEEDBACK"
   location?:   string;
   attachmentUrl?: string;
 }
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
       attachmentUrl,
     }: CreateBody = await req.json();
 
-    if (!userId || !categoryId || !agencyId || !title || !description) {
+    if (!userId || !categoryId || !agencyId || !title || !description || !type) {
       return NextResponse.json(
         { error: "userId, categoryId, agencyId, title, description are required." },
         { status: 400 }

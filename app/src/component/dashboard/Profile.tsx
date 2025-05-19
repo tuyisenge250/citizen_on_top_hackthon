@@ -1,8 +1,32 @@
-import { useState, useEffect } from 'react';
+"use client"
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { Save, User, Phone, MapPin, Mail, Building, AlertCircle } from 'lucide-react';
 
+interface ProfileData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  district: string;
+  preferredAgencies: string[];
+  notifications: boolean;
+}
+
+interface ProfileErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  form?: string;
+}
+
 export default function ProfileComponent() {
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<ProfileData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -14,11 +38,12 @@ export default function ProfileComponent() {
     notifications: true
   });
   
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<ProfileErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   
-  // Available government agencies for selection
   const agencies = [
     "Municipal Services",
     "Water Department",
@@ -29,22 +54,66 @@ export default function ProfileComponent() {
     "Education Department"
   ];
   
-  // Load existing profile data if available
   useEffect(() => {
-    const savedProfile = localStorage.getItem('citizenProfile');
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
+    const fetchProfileData = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/citizen/account/view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({id})
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+      
+      const data = await response.json();
+      if (data.success && data.user) {
+        const userData = data.user;
+        setProfile({
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          address: userData.address || '',
+          city: userData.city || '',
+          district: userData.district || '',
+          preferredAgencies: userData.preferredAgencies || [],
+          notifications: userData.notifications !== undefined ? userData.notifications : true
+        });
+      } else {
+        throw new Error('User data not found');
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setErrors({ form: error instanceof Error ? error.message : 'Failed to load profile data' });
+    } finally {
+      setLoading(false);
+    }
+  };
+    const id = localStorage.getItem('citizenId');
+  
+    setUserId(id);
+  
+    if (id) {
+      fetchProfileData(id);
+    } else {
+      setLoading(false);
+      setErrors({ form: "User ID not found. Please log in again." });
     }
   }, []);
+
   
-  const handleChange = (e) => {
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     
     if (type === 'checkbox') {
       if (name === 'notifications') {
         setProfile(prev => ({ ...prev, [name]: checked }));
       } else {
-        // Handle multi-select checkboxes for agencies
         const updatedAgencies = [...profile.preferredAgencies];
         if (checked) {
           updatedAgencies.push(value);
@@ -60,21 +129,25 @@ export default function ProfileComponent() {
       setProfile(prev => ({ ...prev, [name]: value }));
     }
     
-    // Clear error for this field if any
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+    // Clear error for this field if it exists
+    if (errors[name as keyof ProfileErrors]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name as keyof ProfileErrors];
+        return newErrors;
+      });
     }
   };
   
-  const validate = () => {
-    const newErrors = {};
+  const validate = (): boolean => {
+    const newErrors: ProfileErrors = {};
     
     if (!profile.firstName.trim()) newErrors.firstName = "First name is required";
     if (!profile.lastName.trim()) newErrors.lastName = "Last name is required";
     
     if (!profile.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(profile.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
       newErrors.email = "Please enter a valid email";
     }
     
@@ -91,28 +164,60 @@ export default function ProfileComponent() {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
-    if (validate()) {
-      setIsSaving(true);
+    if (!userId) {
+      setErrors({ form: "User not authenticated. Please log in again." });
+      return;
+    }
+    
+    if (!validate()) return;
+    
+    setIsSaving(true);
+    setSaveSuccess(false);
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/citizen/account/update', {
+        method: 'PUt',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: userId,
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          email: profile.email,
+          phone: profile.phone,
+          address: profile.address,
+          city: profile.city,
+          district: profile.district
+        })
+      });
       
-      // Simulate API call with timeout
-      setTimeout(() => {
-        // Save to localStorage for demo purposes
-        localStorage.setItem('citizenProfile', JSON.stringify(profile));
-        
-        setIsSaving(false);
-        setSaveSuccess(true);
-        
-        // Hide success message after 3 seconds
-        setTimeout(() => {
-          setSaveSuccess(false);
-        }, 3000);
-      }, 800);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update profile');
+      }
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      setErrors({ form: error instanceof Error ? error.message : 'Failed to update profile' });
+    } finally {
+      setIsSaving(false);
     }
   };
   
+  if (loading) {
+    return (
+      <div className="max-w-full mx-auto p-6 bg-white rounded-lg shadow-md flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-full mx-auto p-6 bg-white rounded-lg shadow-md">
       <div className="flex items-center mb-6">
@@ -124,6 +229,13 @@ export default function ProfileComponent() {
           <p className="text-gray-600">Manage your citizen account information</p>
         </div>
       </div>
+      
+      {errors.form && (
+        <div className="mb-6 p-3 bg-red-100 text-red-700 rounded-md flex items-center">
+          <AlertCircle size={16} className="mr-2" />
+          <div>{errors.form}</div>
+        </div>
+      )}
       
       {saveSuccess && (
         <div className="mb-6 p-3 bg-green-100 text-green-700 rounded-md flex items-center">
@@ -284,7 +396,6 @@ export default function ProfileComponent() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            
           </div>
         </div>
         
@@ -330,7 +441,7 @@ export default function ProfileComponent() {
               className="mr-2 h-4 w-4 text-blue-600"
             />
             <label htmlFor="notifications" className="text-sm text-gray-700">
-              Receive email notifications about complaint updates
+              Receive email notifications about feedback updates
             </label>
           </div>
         </div>

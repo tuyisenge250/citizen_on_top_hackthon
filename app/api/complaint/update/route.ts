@@ -15,32 +15,35 @@ interface UpdateBody {
 
 export async function PUT(req: NextRequest) {
   try {
-    const {
-      id,
-      categoryId,
-      agencyId,
-      ...data
-    }: UpdateBody = await req.json();
+    const body: UpdateBody = await req.json();
+    const { id, categoryId, agencyId, ...rest } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "Submission id is required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Submission id is required." },
+        { status: 400 }
+      );
     }
 
-    // Ensure submission exists
+    // make sure it exists
     await prisma.submission.findUniqueOrThrow({ where: { id } });
+
+    // build your update payload
+    const updateData: Record<string, any> = { ...rest };
 
     if (categoryId) {
       await prisma.category.findUniqueOrThrow({ where: { id: categoryId } });
-      data.categoryId = categoryId;
+      updateData.categoryId = categoryId;
     }
+
     if (agencyId) {
       await prisma.agency.findUniqueOrThrow({ where: { id: agencyId } });
-      data.agencyId = agencyId;
+      updateData.agencyId = agencyId;
     }
 
     const updated = await prisma.submission.update({
       where: { id },
-      data,
+      data: updateData,
       select: {
         id: true,
         title: true,
@@ -61,6 +64,9 @@ export async function PUT(req: NextRequest) {
     );
   } catch (error) {
     console.error("Update submission error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

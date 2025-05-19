@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { House, Video, BookOpenCheck, ArrowLeftRight, BookCheck, CircleUserRound } from 'lucide-react';
+import { House, Video, BookOpenCheck, ArrowLeftRight, BookCheck, CircleUserRound, ChartColumnStacked, University} from 'lucide-react';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import { Layout, Menu, theme } from 'antd';
@@ -10,9 +10,10 @@ import Home from './Home';
 import AdminDashboard from './home/ComplaintHistories';
 const { Header, Sider, Content } = Layout;
 import FeedbackDashboard from './feedBack';
-import ProfileComponent from './Profile';
 import NotificationsPage from './Notification';
-
+import ProfileComponent from '../dashboard/Profile';
+import UserUpdateForm from './user';
+import AgencyManagement from './agency';
 
 const DashboardLayoutAdmin = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -63,8 +64,8 @@ const DashboardLayoutAdmin = () => {
   const menuItems = [
     {
       key: '1',
-      icon: <House size={20} />,
-      label: 'Home',
+      icon: <House size={20}/>,
+      label: 'Dashboard',
     },
     {
       key: '2',
@@ -77,6 +78,16 @@ const DashboardLayoutAdmin = () => {
       label: 'FeedBack',
     },
     {
+      key: '7',
+      icon: <ChartColumnStacked size={20} />,
+      label: 'category',
+    },
+    {
+      key: '8',
+      icon: <University size={20} />,
+      label: 'Agency',
+    },
+    {
       key: '4',
       icon: <ArrowLeftRight size={20} />,
       label: 'notification',
@@ -84,7 +95,7 @@ const DashboardLayoutAdmin = () => {
     {
       key: '5',
       icon: <BookCheck size={20}/>,
-      label: 'setting',
+      label: 'user',
     }
   ];
 
@@ -197,7 +208,10 @@ const DashboardLayoutAdmin = () => {
            selectedKey === '2' ? <AdminDashboard /> :
            selectedKey === '3' ? <FeedbackDashboard /> :
            selectedKey === '4' ? <NotificationsPage /> :
+           selectedKey === '5' ? <UserUpdateForm /> :
            selectedKey === '6' ? <ProfileComponent /> :
+           selectedKey === '8' ? <AgencyManagement /> :
+           selectedKey === '7' ? <AgencyManagement /> :
            <h1>Content coming soon</h1>}
         </Content>
       </Layout>

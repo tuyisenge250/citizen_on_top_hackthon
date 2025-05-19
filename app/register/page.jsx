@@ -10,28 +10,38 @@ export default function DrivingRegister() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formState, setFormState] = useState({
-    fullName: "",
-    phoneNumber: "",
+    firstName: "",
+    lastName: "",
+    email: "",
     password: "",
+    phone: "",
     agreeTerms: false
   });
   const [formErrors, setFormErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-
   const validateForm = () => {
     const errors = {};
     
-    if (!formState.fullName) {
-      errors.fullName = "Full name is required";
+    if (!formState.firstName) {
+      errors.firstName = "First name is required";
     }
-
     
-    if (!formState.phoneNumber) {
-      errors.phoneNumber = "Phone number is required";
-    } else if (!/^\d{10}$/.test(formState.phoneNumber.replace(/\D/g, ''))) {
-      errors.phoneNumber = "Please enter a valid phone number";
+    if (!formState.lastName) {
+      errors.lastName = "Last name is required";
+    }
+    
+    if (!formState.email) {
+      errors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formState.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    if (!formState.phone) {
+      errors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(formState.phone.replace(/\D/g, ''))) {
+      errors.phone = "Please enter a valid phone number";
     }
     
     if (!formState.password) {
@@ -47,7 +57,7 @@ export default function DrivingRegister() {
     return errors;
   };
 
-  const handleSubmit = (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     
     const errors = validateForm();
@@ -55,12 +65,31 @@ export default function DrivingRegister() {
     
     if (Object.keys(errors).length === 0) {
       setIsLoading(true);
-      
-      setTimeout(() => {
+
+      try {
+        const formJson = JSON.stringify(formState);
+        const res = await fetch("http://localhost:3000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: formJson,
+        });
+            
+        const successInfo = await res.json();
+        console.log(successInfo);
+
+        if (!res.ok) {
+          setFormErrors({ general: successInfo.error || "Something went wrong, please try again" });
+          setIsLoading(false);
+          return;
+        }
+
+        router.replace("/login");
+      } catch (error) {
+        setFormErrors({ general: "Connection error. Please try again." });
         setIsLoading(false);
-        router.push("/dashboard"); 
-        console.log("Registration successful", formState);
-      }, 1500);
+      }
     }
   };
 
@@ -155,35 +184,84 @@ export default function DrivingRegister() {
           >
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-blue-900">Create Your Account</h2>
-              <p className="text-gray-600 mt-2">Sending your feedback/compliants today</p>
+              <p className="text-gray-600 mt-2">Sending your feedback/complaints today</p>
             </div>
             
             <form onSubmit={handleSubmit}>
+              {formErrors.general && (
+                <div className="mb-5 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg">
+                  {formErrors.general}
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4 mb-5">
+                <div>
+                  <label htmlFor="firstName" className="block text-gray-700 font-medium mb-2">First Name</label>
+                  <div className={`relative border ${formErrors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      id="firstName"
+                      name="firstName"
+                      value={formState.firstName}
+                      onChange={handleChange}
+                      className="block w-full text-black pl-10 pr-3 py-3 border-0 rounded-lg focus:outline-none"
+                      placeholder="First name"
+                    />
+                  </div>
+                  {formErrors.firstName && <p className="mt-1 text-sm text-red-500">{formErrors.firstName}</p>}
+                </div>
+                
+                <div>
+                  <label htmlFor="lastName" className="block text-gray-700 font-medium mb-2">Last Name</label>
+                  <div className={`relative border ${formErrors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      value={formState.lastName}
+                      onChange={handleChange}
+                      className="block w-full text-black pl-10 pr-3 py-3 border-0 rounded-lg focus:outline-none"
+                      placeholder="Last name"
+                    />
+                  </div>
+                  {formErrors.lastName && <p className="mt-1 text-sm text-red-500">{formErrors.lastName}</p>}
+                </div>
+              </div>
+
               <div className="mb-5">
-                <label htmlFor="fullName" className="block text-gray-700 font-medium mb-2">Full Name</label>
-                <div className={`relative border ${formErrors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
+                <label htmlFor="email" className="block text-gray-700 font-medium mb-2">Email Address</label>
+                <div className={`relative border ${formErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={formState.fullName}
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formState.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border-0 rounded-lg focus:outline-none"
-                    placeholder="Enter your full name"
+                    className="block w-full text-black pl-10 pr-3 py-3 border-0 rounded-lg focus:outline-none"
+                    placeholder="your.email@example.com"
                   />
                 </div>
-                {formErrors.fullName && <p className="mt-1 text-sm text-red-500">{formErrors.fullName}</p>}
+                {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
               </div>
-
               
               <div className="mb-5">
-                <label htmlFor="phoneNumber" className="block text-gray-700 font-medium mb-2">Phone Number</label>
-                <div className={`relative border ${formErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
+                <label htmlFor="phone" className="block text-gray-700 font-medium mb-2">Phone Number</label>
+                <div className={`relative border ${formErrors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus-within:ring-2 focus-within:ring-blue-900 focus-within:border-blue-900 transition-all duration-200`}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
@@ -191,15 +269,15 @@ export default function DrivingRegister() {
                   </div>
                   <input
                     type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formState.phoneNumber}
+                    id="phone"
+                    name="phone"
+                    value={formState.phone}
                     onChange={handleChange}
                     className="block w-full text-black pl-10 pr-3 py-3 border-0 rounded-lg focus:outline-none"
                     placeholder="07XXXXXXXX"
                   />
                 </div>
-                {formErrors.phoneNumber && <p className="mt-1 text-sm text-red-500">{formErrors.phoneNumber}</p>}
+                {formErrors.phone && <p className="mt-1 text-sm text-red-500">{formErrors.phone}</p>}
               </div>
               
               <div className="mb-5">
@@ -241,7 +319,6 @@ export default function DrivingRegister() {
                 </div>
                 {formErrors.password && <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>}
               </div>
-              
               
               <div className="mb-6">
                 <div className="flex items-start">
@@ -295,7 +372,6 @@ export default function DrivingRegister() {
           </motion.div>
         </div>
         
-        {/* Right side - Illustration visible on medium screens and up */}
         <div className="hidden md:block w-full md:w-1/2 z-10 pl-10">
           <motion.div 
             initial={{ opacity: 0, x: 100 }}
@@ -305,7 +381,7 @@ export default function DrivingRegister() {
           >
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-3xl shadow-lg">
               <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-6">
-                Sending your feedback/compliants today
+                Sending your feedback/complaints today
               </h1>
               <p className="text-gray-600 text-lg mb-6">
                 Join Citizen on Top and gain access to transparent governance tools, real-time feedback tracking, and expert support for addressing your community concerns.
