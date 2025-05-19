@@ -42,6 +42,7 @@ interface ComplaintItem {
   responses: Response[];
 }
 
+const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
 interface AccordionProps {
   i: number;
   expanded: number | null;
@@ -343,14 +344,14 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/complaint/complaint_response_all");
+        const response = await fetch(`${url}/api/complaint/complaint_response_all`);
         if (!response.ok) {
           throw new Error('Failed to fetch complaints');
         }
         const data = await response.json();
         setComplaints(data.complaints);
         setError("")
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message);
       } finally {
         setLoading(false);
@@ -380,7 +381,8 @@ const handleStatusChange = async (id: string, status: string) => {
 
   const handleResponseSubmit = async (submissionId: string, message: string) => {
     try {
-      const response = await fetch("http://localhost:3000/api/response/create", {
+
+      const response = await fetch(`${url}/api/response/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -418,7 +420,7 @@ const handleStatusChange = async (id: string, status: string) => {
             } 
           : complaint
       ));
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     }
   };

@@ -13,6 +13,8 @@ export default function NewFeedback() {
   const [isPublic, setIsPublic] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
+  const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
+
   useEffect(() => {
     setUserId(localStorage.getItem("citizenId"));
     AgencyWithCategories();
@@ -20,7 +22,7 @@ export default function NewFeedback() {
 
   async function AgencyWithCategories() {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/agency/agencycategories", {
+      const res = await fetch(`${url}/api/admin/agency/agencycategories`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -50,7 +52,7 @@ export default function NewFeedback() {
     console.log(dataJson)
     
     try {
-      const res = await fetch("http://localhost:3000/api/complaint/create", {
+      const res = await fetch(`${url}/api/complaint/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

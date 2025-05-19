@@ -15,7 +15,7 @@ interface User {
   role: Role;
   agencyId?: string | null;
 }
-
+const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
 interface UserProfile {
   firstName: string;
   lastName: string;
@@ -61,7 +61,7 @@ export default function UserUpdateForm() {
         setLoading(true);
         
         // Fetch users
-        const usersResponse = await fetch('http://localhost:3000/api/admin/view_user');
+        const usersResponse = await fetch(`${url}/api/admin/view_user`);
         if (!usersResponse.ok) {
           throw new Error('Failed to fetch users');
         }
@@ -70,7 +70,7 @@ export default function UserUpdateForm() {
         setFilteredUsers(usersData.users || []);
         
         // Fetch agencies
-        const agenciesResponse = await fetch("http://localhost:3000/api/admin/agency/agencycategories");
+        const agenciesResponse = await fetch(`{url}/api/admin/agency/agencycategories`);
         if (!agenciesResponse.ok) {
           throw new Error('Failed to fetch agencies');
         }
@@ -125,15 +125,15 @@ export default function UserUpdateForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    // Reset agencyId when role changes from AGENCY_STAFF to something else
-    if (name === 'role' && value !== Role.AGENCY_STAFF && profile.agencyId) {
-      setProfile(prevProfile => ({
-        ...prevProfile,
-        [name]: value,
-        agencyId: null
-      }));
-      return;
-    }
+if (name === 'role' && value !== Role.AGENCY_STAFF && profile.agencyId) {
+  setProfile(prevProfile => ({
+    ...prevProfile,
+    role: value as Role,
+    agencyId: null,
+  }));
+  return;
+}
+
     
     setProfile(prevProfile => ({
       ...prevProfile,
@@ -164,7 +164,7 @@ export default function UserUpdateForm() {
     
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3000/api/citizen/account/update', {
+      const response = await fetch(`${url}/api/citizen/account/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

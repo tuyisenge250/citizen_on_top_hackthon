@@ -18,7 +18,7 @@ export default function NewComplaint() {
 
   async function AgencyWithCategories() {
     try {
-      const res = await fetch("http://localhost:3000/api/admin/agency/agencycategories", {
+      const res = await fetch(`${url}/api/admin/agency/agencycategories`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export default function NewComplaint() {
     const dataJson = JSON.stringify(formData);
     
     try {
-      const res = await fetch("http://localhost:3000/api/complaint/create", {
+      const res = await fetch(`${url}/api/complaint/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

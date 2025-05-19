@@ -39,6 +39,7 @@ interface ComplaintItem {
   };
   responses: Response[];
 }
+const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
 interface AccordionProps {
   i: number;
@@ -318,7 +319,7 @@ const AgencyDashboard: React.FC = () => {
         }
         
         setUserId(id);
-        const response = await fetch("http://localhost:3000/api/complaint/agency_complaint", {
+        const response = await fetch(`${url}/api/complaint/agency_complaint`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -347,7 +348,7 @@ const handleStatusChange = async (id: string, status: string) => {
   try {
     // 1) Update the status in the backend
     const response = await fetch(
-      `http://localhost:3000/api/complaint/update_status`,
+      `${url}/api/complaint/update_status`,
       {
         method: "POST",
         headers: {
@@ -385,7 +386,7 @@ const handleStatusChange = async (id: string, status: string) => {
         throw new Error('User ID not found');
       }
 
-      const response = await fetch("http://localhost:3000/api/response/create", {
+      const response = await fetch(`${url}/api/response/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

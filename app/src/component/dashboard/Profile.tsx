@@ -38,6 +38,8 @@ export default function ProfileComponent() {
     notifications: true
   });
   
+  const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
+
   const [errors, setErrors] = useState<ProfileErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -57,13 +59,13 @@ export default function ProfileComponent() {
   useEffect(() => {
     const fetchProfileData = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/citizen/account/view`, {
+      const response = await fetch(`${url}/api/citizen/account/view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({id})
-      });
+      });`http://localhost:3000
       
       if (!response.ok) {
         throw new Error('Failed to fetch profile data');
@@ -178,7 +180,7 @@ export default function ProfileComponent() {
     setSaveSuccess(false);
     
     try {
-      const response = await fetch('http://localhost:3000/api/citizen/account/update', {
+      const response = await fetch(`${url}/api/citizen/account/update`, {
         method: 'PUt',
         headers: {
           'Content-Type': 'application/json',

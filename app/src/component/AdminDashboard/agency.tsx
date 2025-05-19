@@ -16,6 +16,8 @@ interface Agency {
   address?: string;
   categories?: Category[];
 }
+const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
+
 
 export default function AgencyManagement() {
 const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -41,7 +43,7 @@ const [selectedAgency, setSelectedAgency] = useState<Agency | null>(null);
   const fetchAgencies = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3000/api/admin/agency/agencycategories");
+      const response = await fetch(`${url}/api/admin/agency/agencycategories`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch agencies");
@@ -119,8 +121,8 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement 
 
     try {
       const url = isEditing && selectedAgency 
-        ? "http://localhost:3000/api/admin/agency/update"
-        : "http://localhost:3000/api/admin/agency/create";
+        ? `${url}/api/admin/agency/update`
+        : `${url}/api/admin/agency/create`;
       
       const method = isEditing && selectedAgency ? "PUT" : "POST";
       
@@ -158,7 +160,7 @@ const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement 
     if (!validateCategoryForm()) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/admin/categories/create", {
+      const response = await fetch(`${url}/api/admin/categories/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

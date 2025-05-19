@@ -46,6 +46,8 @@ interface Category {
   id: string;
   name: string;
 }
+const url = process.env.NEXT_PUBLIC_BACKEND_URL!;
+
 
 const FeedbackHistories: React.FC = () => {
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -66,7 +68,7 @@ const FeedbackHistories: React.FC = () => {
   useEffect(() => {
     const fetchComplaints = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/complaint/complaint_response", {
+        const res = await fetch(`${url}/api/complaint/complaint_response`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

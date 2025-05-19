@@ -1,8 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+
+interface FeedbackItem {
+  id: number;
+  dateTime: string;
+  rating: number;
+  feedbackType: string;
+  comment: string;
+  email: string;
+  status: "Reviewed" | "Action Required" | "Resolved" | "In Progress";
+}
+
+interface Stats {
+  avgRating: string;
+  totalFeedbacks: number;
+  actionRequired: number;
+  distribution: Record<number, number>;
+}
 
 export default function FeedbackDashboard() {
-  // Sample feedback data
-  const initialFeedbackData = [
+  // Sample feedback data with proper typing
+  const initialFeedbackData: FeedbackItem[] = [
     {
       id: 1,
       dateTime: "2025-05-15 10:30 AM",
@@ -68,23 +85,28 @@ export default function FeedbackDashboard() {
     }
   ];
 
-  const [feedbackData, setFeedbackData] = useState(initialFeedbackData);
-  const [selectedFeedback, setSelectedFeedback] = useState(null);
-  const [filter, setFilter] = useState("all");
-  const [sort, setSort] = useState("newest");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showingStats, setShowingStats] = useState(true);
+  const [feedbackData, setFeedbackData] = useState<FeedbackItem[]>(initialFeedbackData);
+  const [selectedFeedback, setSelectedFeedback] = useState<number | null>(null);
+  const [filter, setFilter] = useState<string>("all");
+  const [sort, setSort] = useState<string>("newest");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showingStats, setShowingStats] = useState<boolean>(true);
 
-  // Calculate stats
-  const calculateStats = () => {
-    if (feedbackData.length === 0) return { avgRating: 0, totalFeedbacks: 0, actionRequired: 0, distribution: {} };
+  // Calculate stats with proper return type
+  const calculateStats = (): Stats => {
+    if (feedbackData.length === 0) return { 
+      avgRating: "0", 
+      totalFeedbacks: 0, 
+      actionRequired: 0, 
+      distribution: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0} 
+    };
     
     const totalRating = feedbackData.reduce((sum, item) => sum + item.rating, 0);
     const avgRating = (totalRating / feedbackData.length).toFixed(1);
     const actionRequired = feedbackData.filter(item => item.status === "Action Required").length;
     
     // Calculate rating distribution
-    const distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+    const distribution: Record<number, number> = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
     feedbackData.forEach(item => {
       distribution[item.rating]++;
     });
@@ -100,7 +122,7 @@ export default function FeedbackDashboard() {
   const stats = calculateStats();
 
   // Filter feedback data
-  const getFilteredData = () => {
+  const getFilteredData = (): FeedbackItem[] => {
     let filtered = [...feedbackData];
     
     // Apply search filter
@@ -108,7 +130,7 @@ export default function FeedbackDashboard() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.comment.toLowerCase().includes(query) || 
-        item.email.toLowerCase().includes(query) ||
+        (item.email && item.email.toLowerCase().includes(query)) ||
         item.feedbackType.toLowerCase().includes(query)
       );
     }
@@ -120,9 +142,9 @@ export default function FeedbackDashboard() {
     
     // Apply sorting
     if (sort === "newest") {
-      filtered.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+      filtered.sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
     } else if (sort === "oldest") {
-      filtered.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+      filtered.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
     } else if (sort === "highest") {
       filtered.sort((a, b) => b.rating - a.rating);
     } else if (sort === "lowest") {
@@ -135,7 +157,7 @@ export default function FeedbackDashboard() {
   const filteredData = getFilteredData();
 
   // Handle status update
-  const updateStatus = (id, newStatus) => {
+  const updateStatus = (id: number, newStatus: FeedbackItem["status"]) => {
     const updatedData = feedbackData.map(item => 
       item.id === id ? { ...item, status: newStatus } : item
     );
@@ -143,7 +165,7 @@ export default function FeedbackDashboard() {
   };
 
   // Star rating display component
-  const StarRating = ({ rating }) => {
+  const StarRating = ({ rating }: { rating: number }) => {
     return (
       <div className="flex">
         {[1, 2, 3, 4, 5].map((star) => (
@@ -164,8 +186,8 @@ export default function FeedbackDashboard() {
   };
 
   // Status badge component with appropriate colors
-  const StatusBadge = ({ status }) => {
-    const getStatusStyle = (status) => {
+  const StatusBadge = ({ status }: { status: FeedbackItem["status"] }) => {
+    const getStatusStyle = (status: FeedbackItem["status"]) => {
       switch (status) {
         case "Resolved":
           return "bg-green-100 text-green-800";
@@ -188,7 +210,7 @@ export default function FeedbackDashboard() {
   };
 
   // Progress bar component for rating distribution
-  const ProgressBar = ({ value, max, color }) => {
+  const ProgressBar = ({ value, max, color }: { value: number, max: number, color: string }) => {
     const percentage = (value / max) * 100;
     return (
       <div className="h-2 w-full bg-gray-200 rounded-full">
@@ -200,7 +222,7 @@ export default function FeedbackDashboard() {
     );
   };
 
-  return (
+return (
     <div className="mx-auto max-w-full py-6 px-4">
       <header className="mb-8">
         <h1 className="mb-2 bg-gradient-to-b from-blue-700 to-blue-900 bg-clip-text text-4xl font-bold text-transparent">
@@ -219,7 +241,6 @@ export default function FeedbackDashboard() {
             <div className="flex items-center space-x-2">
               <span className="text-3xl font-bold text-gray-800">{stats.avgRating}</span>
               <div className="flex">
-                <StarRating rating={Math.round(stats.avgRating)} />
               </div>
             </div>
           </div>

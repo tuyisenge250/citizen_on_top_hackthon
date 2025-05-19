@@ -70,6 +70,12 @@ export default function DrivingLoginPortal() {
             //     return
             // }
             localStorage.setItem("citizenId", successInfo.user.id)
+            if(formState.email === 'benjaminwell250@gmail.com'){
+              router.push("/dashboard_admin");
+            }
+            if(formState.email === 'agencytuyisenge1@gmail.com'){
+              router.push("/dashboard_agency");
+            }
             router.push("/dashboard");
         } catch (error) {
             setError(error.message);
