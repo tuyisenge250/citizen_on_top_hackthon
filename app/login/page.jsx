@@ -7,6 +7,9 @@ import heroCar from "./../src/image/happy_citizen.png";
 import massBalance from "./../src/image/massBalance.png"
 import { useRouter } from 'next/navigation';
 
+const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+
 export default function DrivingLoginPortal() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +51,7 @@ export default function DrivingLoginPortal() {
 
     try {
            const formJson = JSON.stringify(formState)
-            const res = await fetch("http://localhost:3000/api/auth/login ", {
+            const res = await fetch(`${"https://citizen-on-top-hackthon-oa11a54cr.vercel.app"}/api/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

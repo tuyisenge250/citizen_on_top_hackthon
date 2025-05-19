@@ -21,6 +21,7 @@ export default function DrivingRegister() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+
   const validateForm = () => {
     const errors = {};
     
@@ -68,7 +69,7 @@ export default function DrivingRegister() {
 
       try {
         const formJson = JSON.stringify(formState);
-        const res = await fetch("http://localhost:3000/api/auth/register", {
+        const res = await fetch(`${"https://citizen-on-top-hackthon-oa11a54cr.vercel.app"}/api/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
