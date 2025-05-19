@@ -48,7 +48,7 @@ export default function NewComplaint() {
     const dataJson = JSON.stringify(formData);
     
     try {
-      const res = await fetch(`${url}/api/complaint/create", {
+      const res = await fetch(`${url}/api/complaint/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

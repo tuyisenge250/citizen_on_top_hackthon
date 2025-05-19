@@ -65,7 +65,7 @@ export default function ProfileComponent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({id})
-      });`http://localhost:3000
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch profile data');
